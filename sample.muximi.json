@@ -1,0 +1,17 @@
+{
+  "session": {
+    "name": "my-session-name"
+  },
+  "windows": [
+    {
+      "name": "window-one",
+      "path": "/",
+      "cmd": "ls -al"
+    },
+    {
+      "name": "window-two",
+      "path": "/home",
+      "cmd": "htop"
+    }
+  ]
+}
