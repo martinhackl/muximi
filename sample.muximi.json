@@ -1,6 +1,7 @@
 {
   "session": {
-    "name": "my-session-name"
+    "name": "my-session-name",
+    "root": "/home"
   },
   "windows": [
     {
