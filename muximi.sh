@@ -36,6 +36,7 @@ IFS=',' read -r -a cmds <<< "$in_cmds"
 # Global variables
 # ------------------------------------------------------------------------------
 session_name=$(jq -r ".session.name" "$json_file")
+root_path=$(jq -r ".session.root" "$json_file")
 
 # ------------------------------------------------------------------------------
 # Main
@@ -56,16 +57,18 @@ if [[ " ${cmds[@]} " =~ " create " ]] && ! tmux ls | grep "$session_name"; then
 
   for window in $(jq -cr ".windows[]" "$json_file"); do
     name=$(echo "$window" | jq -r ".name")
-    path=$(echo "$window" | jq -r ".path")
+    rel_path=$(echo "$window" | jq -r ".path")
+    path="${root_path:-/}/${rel_path}"
     cmd=$(echo "$window" | jq -r ".cmd")
 
     if [ "$idx" -eq "$base_index" ]; then
       # tmux creates one window by default
       tmux rename-window -t "$idx" "$name"
-      tmux send-keys -t "$idx" "cd $path" C-m C-l
     else
       tmux new-window -t "$session_name:$idx" -n "$name" -c "$path"
     fi
+
+    tmux send-keys -t "$idx" "cd $path" C-m C-l
 
     if [ -n "$cmd" ] && [[ " ${cmds[@]} " =~ " run " ]]; then
       tmux send-keys -t "$idx" "$cmd" C-m
