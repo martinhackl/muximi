@@ -3,12 +3,12 @@
 #
 #         NAME: muximi.sh
 #
-#        USAGE: muximi.sh [config file] [create,attach,remove,run]
+#        USAGE: muximi.sh [config file] [create,attach,remove]
 #
 #  DESCRIPTION: Creates and congfigures a tmux session based on a JSON config
 #               file.
 #
-# REQUIREMENTS: tmux
+# REQUIREMENTS: jq, tmux
 #      VERSION: 0.2.0
 #
 #===============================================================================
@@ -17,82 +17,125 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-#== FUNCTION  ==================================================================
-#         NAME:  usage
-#  DESCRIPTION:  Display usage information.
-#===============================================================================
+readonly ARGS=("$@")
+# readonly DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# readonly FILE="${DIR}/$(basename "${BASH_SOURCE[0]}")"
+
 usage() {
-  cat<<- EOT
-Start a Tmux session preconfigured with a JSON file.
-
-usage : $0 [config file] [comma separated commands]
-
-  Possible commands are:
-    - create ... Create new session.
-    - attach ... Attach to session.
-    - remove ... Remove session.
-    - run    ... Only when used with 'create': Run configured commands.
-EOT
+  echo "Start a Tmux session preconfigured with a JSON file."
+  echo ""
+  echo "  usage : $0 [config file] [comma separated commands]"
+  echo ""
+  echo "    Possible commands are:"
+  echo "      - create ... Create new session."
+  echo "      - attach ... Attach to session."
+  echo "      - remove ... Remove session."
 }
 
-# ------------------------------------------------------------------------------
-# Parameters
-# ------------------------------------------------------------------------------
-[ $# -ne 2 ] && { usage; exit 1; }
+session_exists() {
+  tmux ls 2>/dev/null | grep -q "$1"
+}
 
-json_file=$1
-in_cmds=$2
-IFS=',' read -r -a cmds <<< "$in_cmds"
+command_exists() {
+  local rest="${@:2}"
 
-# ------------------------------------------------------------------------------
-# Global variables
-# ------------------------------------------------------------------------------
-session_name=$(jq -r ".session.name" "$json_file")
-root_path=$(jq -r ".session.root" "$json_file")
+  printf "%s\n" "${rest[@]}" | grep -q "$1"
+}
 
-# ------------------------------------------------------------------------------
-# Main
-# ------------------------------------------------------------------------------
-if [[ " ${cmds[@]} " =~ " remove " ]]; then
-  echo "Remove session..."
-  tmux kill-session -t "$session_name"
-fi
+create_session() {
+  tmux -2 new-session -d -s "$1"
+}
 
-if [[ " ${cmds[@]} " =~ " create " ]] && ! tmux ls | grep "$session_name"; then
-  echo "Create session..."
-  tmux -2 new-session -d -s "$session_name"
+attach_session() {
+  tmux attach -t "$1"
+}
 
+remove_session() {
+  tmux kill-session -t "$1" 2>/dev/null
+}
+
+create_windows() {
+  local windows
+  local base_index
+  local idx
+
+  windows="$1"
   base_index=$(tmux show-options -gv base-index)
-
   idx="$base_index"
+
   IFS=$'\n'
 
-  for window in $(jq -cr ".windows[]" "$json_file"); do
-    name=$(echo "$window" | jq -r ".name")
-    rel_path=$(echo "$window" | jq -r ".path")
-    path="${root_path:-/}/${rel_path}"
-    cmd=$(echo "$window" | jq -r ".cmd")
+  for window in ${windows}
+  do
+      local name
+      local rel_path
+      local path
+      local cmd
 
-    if [ "$idx" -eq "$base_index" ]; then
-      # tmux creates one window by default
-      tmux rename-window -t "$idx" "$name"
-    else
-      tmux new-window -t "$session_name:$idx" -n "$name" -c "$path"
-    fi
+      name=$(echo "$window" | jq -r ".name")
+      rel_path=$(echo "$window" | jq -r ".path")
+      path="${root_path:-/}/${rel_path}"
+      cmd=$(echo "$window" | jq -r ".cmd")
 
-    tmux send-keys -t "$idx" "cd $path" C-m C-l
 
-    if [ -n "$cmd" ] && [[ " ${cmds[@]} " =~ " run " ]]; then
-      tmux send-keys -t "$idx" "$cmd" C-m
-    fi
+      if [ "$idx" -eq "$base_index" ]
+      then
+        # tmux creates one window by default
+        tmux rename-window -t "$idx" "$name"
+      else
+        tmux new-window -t "$session_name:$idx" -n "$name" -c "$path"
+      fi
 
-    ((idx++))
-  done
+      tmux send-keys -t "$idx" "cd $path" C-m C-l
 
-  unset IFS
-fi
+      if [ -n "$cmd" ]
+      then
+        tmux send-keys -t "$idx" "$cmd" C-m
+      fi
 
-if [[ " ${cmds[@]} " =~ " attach " ]]; then
-  echo "Attach to session..."
-  tmux attach -t "$session_name"
-fi
+      ((idx++))
+    done
+
+    unset IFS
+}
+
+main() {
+  local json_file
+  local cmds
+  local session_name
+  local root_path
+
+  json_file="$1"
+  cmds=($(echo "$2" | tr "," "\n"))
+  session_name=$(jq -r ".session.name" "$json_file")
+  root_path=$(jq -r ".session.root" "$json_file")
+
+  if command_exists "remove" "${cmds[@]}" && session_exists "$session_name"
+  then
+    echo "Remove session '${session_name}'..."
+    remove_session "${session_name}"
+  fi
+
+  if command_exists "create" "${cmds[@]}" && ! session_exists "$session_name"
+  then
+    echo "Create session '${session_name}'..."
+
+    create_session "${session_name}"
+
+    windows=$(jq -cr ".windows[]" "$json_file")
+    create_windows "${windows}"
+  fi
+
+  if command_exists "attach" "${cmds[@]}" && session_exists "$session_name"
+  then
+    echo "Attach to session '${session_name}'..."
+    attach_session "$session_name"
+  fi
+}
+
+[ $# -ne 2 ] && {
+  usage
+  exit 1
+}
+
+main "${ARGS[@]}"
