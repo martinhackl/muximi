@@ -6,12 +6,12 @@
   "windows": [
     {
       "name": "window-one",
-      "path": "/",
+      "path": ".",
       "cmd": "ls -al"
     },
     {
       "name": "window-two",
-      "path": "/home",
+      "path": ".",
       "cmd": "htop"
     }
   ]
