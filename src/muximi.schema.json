@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "session": {
+    "description": "Session description",
+    "type": "object",
+    "properties": {
+      "name": {
+        "description": "Tmux session name",
+        "type": "string"
+      },
+      "root": {
+        "description": "Root path for all windows",
+        "type": "string"
+      }
+    },
+    "required": [
+      "name",
+      "root"
+    ]
+  },
+  "windows": {
+    "description": "Array of window objects which should be created",
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Window name",
+          "type": "string"
+        },
+        "path": {
+          "description": "Path relative to root",
+          "type": "string"
+        },
+        "cmd": {
+          "description": "Command to execute when window is created",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "path"
+      ]
+    }
+  }
+}
