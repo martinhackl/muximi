@@ -1,9 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#===============================================================================
+#
+#         NAME: muximi.sh
+#
+#        USAGE: muximi.sh [config file] [create,attach,remove,run]
+#
+#  DESCRIPTION: Creates and congfigures a tmux session based on a JSON config
+#               file.
+#
+# REQUIREMENTS: tmux
+#      VERSION: 0.2.0
+#
+#===============================================================================
 
-set -u
-set -e
-
-VERSION=0.2.0
+set -o errexit
+set -o pipefail
+set -o nounset
 
 #== FUNCTION  ==================================================================
 #         NAME:  usage
