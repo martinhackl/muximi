@@ -13,6 +13,7 @@
         "type": "string"
       }
     },
+    "additionalProperties": false,
     "required": [
       "name",
       "root"
@@ -37,6 +38,7 @@
           "type": "string"
         }
       },
+      "additionalProperties": false,
       "required": [
         "name",
         "path"
