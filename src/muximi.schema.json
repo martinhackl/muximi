@@ -19,6 +19,17 @@
       "root"
     ]
   },
+  "hooks": {
+    "description": "Hooks to run at specific points during session creation",
+    "type": "object",
+    "properties": {
+      "before": {
+        "description": "This hook will run before the session will be created",
+        "type": "string"
+      }
+    },
+    "additionalProperties": false
+  },
   "windows": {
     "description": "Array of window objects which should be created",
     "type": "array",
