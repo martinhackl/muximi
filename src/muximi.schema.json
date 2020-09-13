@@ -25,7 +25,36 @@
     "properties": {
       "before": {
         "description": "This hook will run before the session will be created",
-        "type": "string"
+        "type": "object",
+        "properties": {
+          "cmd": {
+            "desciption": "The command to run",
+            "type": "string"
+          },
+          "trigger": {
+            "description": "The conditions when the hook should be triggered",
+            "type": "object",
+            "properties": {
+              "remove": {
+                "description": "Run before session remove",
+                "type": "boolean"
+              },
+              "create": {
+                "description": "Run before session create",
+                "type": "boolean"
+              },
+              "attach": {
+                "description": "Run before session attach",
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "cmd"
+        ]
       }
     },
     "additionalProperties": false

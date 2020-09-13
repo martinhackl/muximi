@@ -4,7 +4,14 @@
     "root": "/home"
   },
   "hooks": {
-    "before": "mousepad"
+    "before": {
+      "cmd": "mousepad",
+      "trigger": {
+        "remove": false,
+        "create": true,
+        "attach": false
+      }
+    }
   },
   "windows": [
     {
