@@ -99,26 +99,43 @@ create_windows() {
     unset IFS
 }
 
+run_before_hook() {
+  local hook
+
+  hook="$1"
+
+  [ -n "${hook}" ] && $(${hook})
+}
+
 main() {
   local json_file
   local cmds
   local session_name
   local root_path
+  local before_hook_cmd
 
   json_file="$1"
   cmds=($(echo "$2" | tr "," "\n"))
   session_name=$(jq -r ".session.name" "$json_file")
   root_path=$(jq -r ".session.root" "$json_file")
+  before_hook_cmd=$(jq -r ".hooks.before.cmd" "$json_file")
 
   if command_exists "remove" "${cmds[@]}" && session_exists "$session_name"
   then
     echo "Remove session '${session_name}'..."
+
+    local should_run=$(jq -r ".hooks.before.trigger.remove" "$json_file")
+    "${should_run}" && run_before_hook "${before_hook_cmd}" &
+
     remove_session "${session_name}"
   fi
 
   if command_exists "create" "${cmds[@]}" && ! session_exists "$session_name"
   then
     echo "Create session '${session_name}'..."
+
+    local should_run=$(jq -r ".hooks.before.trigger.create" "$json_file")
+    "${should_run}" && run_before_hook "${before_hook_cmd}" &
 
     create_session "${session_name}"
 
@@ -129,6 +146,10 @@ main() {
   if command_exists "attach" "${cmds[@]}" && session_exists "$session_name"
   then
     echo "Attach to session '${session_name}'..."
+
+    local should_run=$(jq -r ".hooks.before.trigger.attach" "$json_file")
+    "${should_run}" && run_before_hook "${before_hook_cmd}" &
+
     attach_session "$session_name"
   fi
 }
