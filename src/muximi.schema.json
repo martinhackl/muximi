@@ -19,6 +19,46 @@
       "root"
     ]
   },
+  "hooks": {
+    "description": "Hooks to run at specific points during session creation",
+    "type": "object",
+    "properties": {
+      "before": {
+        "description": "This hook will run before the session will be created",
+        "type": "object",
+        "properties": {
+          "cmd": {
+            "desciption": "The command to run",
+            "type": "string"
+          },
+          "trigger": {
+            "description": "The conditions when the hook should be triggered",
+            "type": "object",
+            "properties": {
+              "remove": {
+                "description": "Run before session remove",
+                "type": "boolean"
+              },
+              "create": {
+                "description": "Run before session create",
+                "type": "boolean"
+              },
+              "attach": {
+                "description": "Run before session attach",
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "cmd"
+        ]
+      }
+    },
+    "additionalProperties": false
+  },
   "windows": {
     "description": "Array of window objects which should be created",
     "type": "array",

@@ -3,6 +3,16 @@
     "name": "my-session-name",
     "root": "/home"
   },
+  "hooks": {
+    "before": {
+      "cmd": "mousepad",
+      "trigger": {
+        "remove": false,
+        "create": true,
+        "attach": false
+      }
+    }
+  },
   "windows": [
     {
       "name": "window-one",
