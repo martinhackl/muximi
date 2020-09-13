@@ -3,6 +3,9 @@
     "name": "my-session-name",
     "root": "/home"
   },
+  "hooks": {
+    "before": "mousepad &"
+  },
   "windows": [
     {
       "name": "window-one",
