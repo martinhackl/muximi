@@ -4,7 +4,7 @@
     "root": "/home"
   },
   "hooks": {
-    "before": "mousepad &"
+    "before": "mousepad"
   },
   "windows": [
     {
